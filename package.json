@@ -1,0 +1,17 @@
+{
+  "name": "hue",
+  "version": "1.0.0",
+  "description": "Scripts for Philips Hue Lights",
+  "main": "main.js",
+  "author": "Peter Kok",
+  "license": "BSD-2-Clause",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/kretep/hue-scripts.git"
+  },
+  "dependencies": {
+    "http": "0.0.0",
+    "q": "^1.4.1",
+    "suncalc": "1.7.0"
+  }
+}

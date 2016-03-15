@@ -8,6 +8,7 @@ var SUNSET_LIGHT_ID = 2;
 // Update sunset schedule
 var sunsetDate = sunset.getSunsetDate();
 sunset.updateSunsetSchedule(sunsetDate);
+var sunsetDateWithMargin = new Date(sunsetDate.getTime() - 2 * 60 * 1000);
 
 // Wake up parameters
 var targetHour = 7;
@@ -58,7 +59,7 @@ var interval = setInterval(function () {
   }
 
   // Turn off sunset light if before sunset
-  if (now < sunsetDate) {
+  if (now < sunsetDateWithMargin) {
     hue.updateState(SUNSET_LIGHT_ID, false, 0);
   }
 

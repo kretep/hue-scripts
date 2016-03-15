@@ -1,5 +1,6 @@
 var hue = require('./hueservice.js');
 var SunCalc = require('suncalc');
+var dateFormat = require('dateformat');
 
 var SunsetService = function() {
 
@@ -40,9 +41,8 @@ var SunsetService = function() {
         }, null);
 
         // Construct new time value
-        var sunsetTime = sunsetSchedule.time.split('/')[0] +
-          '/T' + sunsetDate.getHours() + ':' + sunsetDate.getMinutes() +
-          ':' + sunsetDate.getSeconds();
+        var sunsetTime = sunsetSchedule.time.split('/')[0] + '/T' +
+          dateFormat(sunsetDate, 'HH:MM:ss');
         console.log('Sunset: ' + sunsetTime);
 
         // Update the schedule

@@ -10,6 +10,7 @@
     "url": "git://github.com/kretep/hue-scripts.git"
   },
   "dependencies": {
+    "dateformat": "^1.0.12",
     "http": "0.0.0",
     "q": "^1.4.1",
     "suncalc": "1.7.0"

@@ -4,10 +4,6 @@ var dateFormat = require('dateformat');
 
 var SunsetService = function() {
 
-  // TODO: move to configuration
-  var latitude = 52.158970;
-  var longitude = 4.492427;
-
   function convertObjectToList(object) {
     var list = [];
     for (var key in object) {
@@ -22,11 +18,10 @@ var SunsetService = function() {
   }
 
   return {
-    getSunsetDate: function() {
+    getSunsetDate: function(latitude, longitude, correction) {
       // Calculate sunset time
       var sunTimes = SunCalc.getTimes(new Date(), latitude, longitude);
-      // 15 minutes after sunset
-      var sunsetDate = new Date(sunTimes.sunset.getTime() + 15 * 60 * 1000);
+      var sunsetDate = new Date(sunTimes.sunset.getTime() + correction * 60 * 1000);
       console.log('Sunset: ' + sunsetDate);
       return sunsetDate;
     },

@@ -1,25 +1,20 @@
 var hue = require('./hueservice.js');
 var sunset = require('./sunsetservice.js');
 var wakeup = require('./wakeupservice.js');
+var config = require('./config.js');
 
-var WAKEUP_LIGHT_ID = 1;
-var SUNSET_LIGHT_ID = 2;
 
 // Update sunset schedule
-var sunsetDate = sunset.getSunsetDate();
+var sunsetDate = sunset.getSunsetDate(config.latitude, config.longitude, config.correction);
 sunset.updateSunsetSchedule(sunsetDate);
-var sunsetDateWithMargin = new Date(sunsetDate.getTime() - 2 * 60 * 1000);
+var sunsetDateWithMargin = new Date(sunsetDate.getTime() - config.sunsetAutoOffMargin * 60 * 1000);
 
-// Wake up parameters
-var targetHour = 7;
-var targetMinute = 0;
-var duration = 20;
-var margin = 3;
+// Wake up times
 var now = new Date();
 var wakeupTargetDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(),
-                                targetHour, targetMinute, 0, 0);
-var wakeupStartDate = new Date(wakeupTargetDate.getTime() - duration * 60 * 1000);
-var wakeupEndDate = new Date(wakeupTargetDate.getTime() + margin * 60 * 1000);
+                                config.wakeupTargetHour, config.wakeupTargetMinute, 0, 0);
+var wakeupStartDate = new Date(wakeupTargetDate.getTime() - config.wakeupDuration * 60 * 1000);
+var wakeupEndDate = new Date(wakeupTargetDate.getTime() + config.wakeupEndMargin * 60 * 1000);
 
 // Auto turn-off
 var autoTurnOffTimer = null;
@@ -35,21 +30,21 @@ var interval = setInterval(function () {
       autoTurnOffTimer.clearTimeout();
       autoTurnOffTimer = null;
     }
-    wakeup.updateWakeup(WAKEUP_LIGHT_ID, wakeupTargetDate, duration);
+    wakeup.updateWakeup(config.lightIdWakeup, wakeupTargetDate, config.wakeupDuration);
   }
   else {
-    // Turn off light after 2 minutes if not in wake-up sequence
+    // Auto turn off light
     if (!autoTurnOffTimer) {
-      hue.getState(WAKEUP_LIGHT_ID).then(function(result) {
+      hue.getState(config.lightIdWakeup).then(function(result) {
         if (result.state.on) {
-          console.log("Setting timeout to turn off light " + WAKEUP_LIGHT_ID);
+          console.log("Setting timeout to turn off light " + config.lightIdWakeup);
           autoTurnOffTimer = setTimeout(function() {
             autoTurnOffTimer = null;
             // Check if we're still not in wake-up sequence
             if (now < wakeupStartDate || now > wakeupEndDate) {
-              hue.updateState(WAKEUP_LIGHT_ID, false, 0);
+              hue.updateState(config.lightIdWakeup, false, 0);
             }
-          }, 2 * 60 * 1000);
+          }, config.autoOffDelayWakeup * 60 * 1000);
         }
         else {
           autoTurnOffTimer = null;
@@ -60,10 +55,10 @@ var interval = setInterval(function () {
 
   // Turn off sunset light if before sunset
   if (now < sunsetDateWithMargin) {
-    hue.updateState(SUNSET_LIGHT_ID, false, 0);
+    hue.updateState(config.lightIdSunset, false, 0);
   }
 
-}, 30 * 1000);
+}, config.intervalDuration * 1000);
 
 
 // Error handling

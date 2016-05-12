@@ -1,6 +1,7 @@
 var hue = require('./hueservice.js');
 var sunset = require('./sunsetservice.js');
 var wakeup = require('./wakeupservice.js');
+var autooff = require('./autooffservice.js');
 var config = require('./config.js');
 
 
@@ -16,46 +17,29 @@ var wakeupTargetDate = new Date(now.getFullYear(), now.getMonth(), now.getDate()
 var wakeupStartDate = new Date(wakeupTargetDate.getTime() - config.wakeupDuration * 60 * 1000);
 var wakeupEndDate = new Date(wakeupTargetDate.getTime() + config.wakeupEndMargin * 60 * 1000);
 
-// Auto turn-off
-var autoTurnOffTimer = null;
-
-
 // Interval performing wake up and auto off
 var interval = setInterval(function () {
   var now = new Date();
 
+  // Wakeup light
   if (now >= wakeupStartDate && now <= wakeupEndDate) {
+    // Cancel any auto turn-offs
+    autooff.cancelTurnOff();
+
     // Wake-up sequence
-    if (autoTurnOffTimer) {
-      autoTurnOffTimer.clearTimeout();
-      autoTurnOffTimer = null;
-    }
     wakeup.updateWakeup(config.lightIdWakeup, wakeupTargetDate, config.wakeupDuration);
   }
   else {
-    // Auto turn off light
-    if (!autoTurnOffTimer) {
-      hue.getState(config.lightIdWakeup).then(function(result) {
-        if (result.state.on) {
-          console.log("Setting timeout to turn off light " + config.lightIdWakeup);
-          autoTurnOffTimer = setTimeout(function() {
-            autoTurnOffTimer = null;
-            // Check if we're still not in wake-up sequence
-            if (now < wakeupStartDate || now > wakeupEndDate) {
-              hue.updateState(config.lightIdWakeup, false, 0);
-            }
-          }, config.autoOffDelayWakeup * 60 * 1000);
-        }
-        else {
-          autoTurnOffTimer = null;
-        }
-      })
-    }
+    // Auto turn off light if not in wakeup sequence
+    autooff.autoTurnOff(config.lightIdWakeup, config.autoOffDelayWakeup);
   }
 
   // Turn off sunset light if before sunset
   if (now < sunsetDateWithMargin) {
-    hue.updateState(config.lightIdSunset, false, 0);
+    autooff.autoTurnOff(config.lightIdSunset, config.autoOffDelaySunset);
+  }
+  else {
+    autooff.cancelTurnOff();
   }
 
 }, config.intervalDuration * 1000);
